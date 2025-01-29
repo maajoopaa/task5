@@ -27,8 +27,6 @@ namespace task5.Controllers
         }
         public IActionResult MainPage(string language="ru", int seed=0, string likes="1",string reviews="1")
         {
-            reviews = reviews.Replace(".", ",");
-            likes = likes.Replace(".", ",");
             if(_settings.Language != language || _settings.Seed != seed || _settings.Likes != likes || _settings.Reviews != reviews)
             {
                 _settings.Language = language;
@@ -37,13 +35,11 @@ namespace task5.Controllers
                 _settings.Reviews = reviews;
                 _bookService.Id = -1;
             }
-            var books = GenerateBooks(language, seed, double.Parse(likes), double.Parse(reviews), 20);
-            reviews = reviews.Replace(",", ".");
-            likes = likes.Replace(",", ".");
             ViewBag.Language = language;
             ViewBag.Seed = seed;
             ViewBag.Likes = likes;
             ViewBag.Reviews = reviews;
+            var books = GenerateBooks(language, seed, double.Parse(likes), double.Parse(reviews), 20);
             return View(books);
         }
         public IActionResult LoadMoreBooks(string language, int seed, string likes, string reviews)
