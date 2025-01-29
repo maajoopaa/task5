@@ -1,0 +1,363 @@
+﻿@model List<Book>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Книжный магазин - Генерация данных</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background-color: #f4f4f4;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background-color: #fff;
+            padding: 20px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .controls {
+            margin-bottom: 20px;
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 20px;
+        }
+
+            .controls label {
+                font-weight: bold;
+                color: #555;
+                margin-right: 10px;
+            }
+
+            .controls select, .controls input {
+                padding: 10px;
+                border: 1px solid #ccc;
+                border-radius: 4px;
+                font-size: 14px;
+            }
+
+            .controls .slider-container {
+                display: flex;
+                align-items: center;
+                gap: 10px;
+            }
+
+        .slider-container input[type="range"] {
+            width: 200px;
+        }
+
+        .slider-container .value {
+            font-size: 14px;
+            font-weight: bold;
+            color: #333;
+            min-width: 50px;
+            text-align: center;
+        }
+
+        button {
+            padding: 10px 20px;
+            background-color: #007BFF;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+
+            button:hover {
+                background-color: #0056b3;
+            }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+
+            table th, table td {
+                padding: 12px;
+                text-align: left;
+                border: 1px solid #ddd;
+            }
+
+            table th {
+                background-color: #f9f9f9;
+            }
+
+        .book-details {
+            display: none;
+            padding: 20px;
+            border: 1px solid #ddd;
+            margin: 10px 0;
+            background-color: #f9f9f9;
+            border-radius: 4px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.05);
+        }
+
+        .loading {
+            text-align: center;
+            font-weight: bold;
+            margin: 20px 0;
+        }
+
+        .toggle-button {
+            cursor: pointer;
+            color: #007BFF;
+            text-decoration: underline;
+        }
+
+        .review {
+            background-color: #e9ecef;
+            margin: 10px 0;
+            padding: 10px;
+            border-radius: 4px;
+        }
+
+        .like-info {
+            font-size: 16px;
+            color: #555;
+            margin-top: 10px;
+            font-weight: bold;
+        }
+
+        .book-details-container {
+            display: flex;
+            justify-content: space-between;
+        }
+
+            .book-details-container img {
+                max-width: 150px;
+                max-height: 200px;
+                margin-right: 20px;
+            }
+
+        .book-info {
+            flex: 1;
+        }
+
+            .book-info .details-header {
+                font-size: 18px;
+                font-weight: bold;
+                margin-top: 10px;
+            }
+
+        .reviews {
+            margin-top: 20px;
+        }
+
+            .reviews .review-header {
+                font-size: 16px;
+                font-weight: bold;
+                margin-bottom: 5px;
+            }
+
+    </style>
+    <script>
+        let isLoading = false;
+        let currentPage = 1;
+
+        function updateBooks() {
+            document.getElementById("filtersForm").submit();
+        }
+
+        function toggleDetails(index) {
+            const details = document.getElementById(`details-${index}`);
+            if (details.style.display === "none" || details.style.display === "") {
+                details.style.display = "table-row";
+            } else {
+                details.style.display = "none";
+            }
+        }
+
+        function updateSliderValue(slider) {
+            const value = slider.value;
+            document.getElementById("sliderValue").textContent = value;
+        }
+
+        function fetchMoreBooks() {
+            if (isLoading) return;
+
+            isLoading = true;
+            document.getElementById("loading").style.display = 'block';
+
+            const language = document.getElementById("language").value;
+            const seed = document.getElementById("seed").value;
+            const likes = document.getElementById("averageLikes").value;
+            const reviews = document.getElementById("averageReviews").value;
+
+            fetch(`/Home/LoadMoreBooks?language=${language}&seed=${seed}&likes=${likes}&reviews=${reviews}`)
+                .then(response => response.json())
+                .then(data => {
+                    const booksTable = document.querySelector("#booksTable tbody");
+                    data.forEach(book => {
+                        const authors = book.authors.map(author => author.name).join(", ");
+                        const bookRow = `
+                            <tr>
+                                <td>${book.id}</td>
+                                <td>${book.isbn}</td>
+                                <td>${book.title}</td>
+                                <td>${authors}</td>
+                                <td>${book.publisher}</td>
+                                <td>
+                                    <span class="toggle-button" onclick="toggleDetails(${book.id})">Показать детали</span>
+                                </td>
+                            </tr>
+                            <tr id="details-${book.id}" class="book-details">
+                                <td colspan="6">
+                                    <div class="book-details-container">
+                                        <div class="book-info">
+                                            <div class="details-header">Обложка:</div>
+                                                <img src="data:image;base64,${book.image}" alt="Обложка книги">
+                                            <div class="like-info">
+                                                Лайки: ${book.rating}
+                                            </div>
+                                            <div class="reviews">
+                                                <div class="review-header">Отзывы:</div>
+                                                ${book.reviews.map(review => `
+                                                    <div class="review">
+                                                        <strong>${review.author.name}:</strong>
+                                                        <p>${review.text}</p>
+                                                    </div>
+                                                `).join('')}
+                                            </div>
+                                        </div>
+                                    </div>
+                                </td>
+                            </tr>
+                        `;
+                        booksTable.insertAdjacentHTML("beforeend", bookRow);
+                    });
+                    isLoading = false;
+                    document.getElementById("loading").style.display = 'none';
+                })
+                .catch(error => {
+                    console.error("Error fetching books:", error);
+                    isLoading = false;
+                    document.getElementById("loading").style.display = 'none';
+                });
+        }
+
+
+        window.addEventListener("scroll", () => {
+            if ((window.innerHeight + window.scrollY) >= document.body.offsetHeight - 100 && !isLoading) {
+                fetchMoreBooks();
+            }
+        });
+    </script>
+</head>
+<body>
+    <div class="container">
+        <h1>Генерация данных</h1>
+
+        <form id="filtersForm" method="post" action="/Home/MainPage">
+            <div class="controls">
+                <label for="language">Язык и регион:</label>
+                <select id="language" name="language">
+                    @{
+                        string language = ViewBag.Language;
+                        if (language == "ru")
+                        {
+                            <option value="ru">Русский (Россия)</option>
+                            <option value="en">Английский (США)</option>
+                            <option value="de">Немецкий (Германия)</option>
+                        }
+                        else if (language == "en")
+                        {
+                            <option value="en">Английский (США)</option>
+                            <option value="ru">Русский (Россия)</option>
+                            <option value="de">Немецкий (Германия)</option>
+                        }
+                        else
+                        {
+                            <option value="de">Немецкий (Германия)</option>
+                            <option value="ru">Русский (Россия)</option>
+                            <option value="en">Английский (США)</option>
+                        }
+                    }
+                </select>
+
+                <label for="seed">Начальное значение (seed):</label>
+                <input type="number" id="seed" name="seed" value="@ViewBag.Seed" placeholder="Введите значение">
+
+                <div class="slider-container">
+                    <label for="averageLikes">Среднее количество лайков:</label>
+                    <input type="range" id="averageLikes" min="0" max="10" name="likes" step="0.1" value="@ViewBag.Likes" onchange="updateSliderValue(this)">
+                    <span id="sliderValue">@ViewBag.Likes</span>
+                </div>
+
+                <label for="averageReviews">Среднее количество отзывов:</label>
+                <input type="number" id="averageReviews" name="reviews" value="@ViewBag.Reviews" min="0" step="0.1">
+
+                <button type="submit">Обновить</button>
+            </div>
+        </form>
+
+        <table id="booksTable">
+            <thead>
+                <tr>
+                    <th>Индекс</th>
+                    <th>ISBN</th>
+                    <th>Название</th>
+                    <th>Автор(ы)</th>
+                    <th>Издатель</th>
+                    <th>Детали</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var book in Model)
+                {
+                    var authors = "";
+                    for (int i = 0; i < book.Authors.Count; i++)
+                    {
+                        authors += book.Authors[i].Name;
+                        if (i + 1 != book.Authors.Count)
+                        {
+                            authors += ", ";
+                        }
+                    }
+                    <tr>
+                        <td>@book.Id</td>
+                        <td>@book.ISBN</td>
+                        <td>@book.Title</td>
+                        <td>@authors</td>
+                        <td>@book.Publisher</td>
+                        <td>
+                            <span class="toggle-button" onclick="toggleDetails(@book.Id)">Показать детали</span>
+                        </td>
+                    </tr>
+                    <tr id="details-@book.Id" class="book-details">
+                        <td colspan="6">
+                            <div class="book-details-container">
+                                <div class="book-info">
+                                    <div class="details-header">Обложка:</div>
+                                    <img src="data:image;base64, @book.Image" style="max-height: 150px;">
+                                    <div class="like-info">
+                                        Лайки: @book.Rating
+                                    </div>
+                                    <div class="reviews">
+                                        <div class="review-header">Отзывы:</div>
+                                        @foreach (var review in book.Reviews)
+                                        {
+                                            <div class="review">
+                                                <strong>@review.Author.Name:</strong>
+                                                <p>@review.Text</p>
+                                            </div>
+                                        }
+                                    </div>
+                                </div>
+                            </div>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+
+        <div id="loading" class="loading" style="display: none;">Загрузка...</div>
+    </div>
+</body>
+</html>
