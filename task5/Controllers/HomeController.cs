@@ -16,12 +16,11 @@ namespace task5.Controllers
     public class HomeController : Controller
     {
         private readonly ILogger<HomeController> _logger;
-        private IBookService _bookService;
+        private static int _bookId = -1;
         private ISettingsService _settings;
 
-        public HomeController(ILogger<HomeController> logger, IBookService bookService, ISettingsService settings)
+        public HomeController(ILogger<HomeController> logger, ISettingsService settings)
         {
-            _bookService = bookService;
             _logger = logger;
             _settings = settings;
         }
@@ -33,7 +32,7 @@ namespace task5.Controllers
                 _settings.Seed = seed;
                 _settings.Likes = likes;
                 _settings.Reviews = reviews;
-                _bookService.Id = -1;
+                _bookId = -1;
             }
             ViewBag.Language = language;
             ViewBag.Seed = seed;
@@ -44,8 +43,6 @@ namespace task5.Controllers
         }
         public IActionResult LoadMoreBooks(string language, int seed, string likes, string reviews)
         {
-            reviews = reviews.Replace(".", ",");
-            likes = likes.Replace(".", ",");
             return Json(GenerateBooks(language, seed, double.Parse(likes), double.Parse(reviews), 10));
         }
         private List<Book> GenerateBooks(string language, int seed, double likes, double reviews, int count)
@@ -62,8 +59,8 @@ namespace task5.Controllers
                 .RuleFor(b => b.Reviews, f => GenerateReviews(f, language, reviews - variationForReviews, Math.Max(reviews + variationForReviews,1)))
                 .RuleFor(b => b.Id, f =>
                 {
-                    _bookService.Id += 1;
-                    return _bookService.Id + 1;
+                    _bookId += 1;
+                    return _bookId + 1;
                 })
                 .RuleFor(b => b.Image, (f, b) => GenerateImage(b.Title, b.Authors));
             return bookFaker.Generate(count);
