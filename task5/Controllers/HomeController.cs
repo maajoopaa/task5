@@ -10,14 +10,15 @@ using task5.Models;
 using System.Drawing;
 using static System.Net.Mime.MediaTypeNames;
 using SkiaSharp;
+using System.Globalization;
 
 namespace task5.Controllers
 {
     public class HomeController : Controller
     {
         private readonly ILogger<HomeController> _logger;
-        private static int _bookId = -1;
         private ISettingsService _settings;
+        private static int _bookId = -1;
 
         public HomeController(ILogger<HomeController> logger, ISettingsService settings)
         {
@@ -26,6 +27,10 @@ namespace task5.Controllers
         }
         public IActionResult MainPage(string language="ru", int seed=0, string likes="1",string reviews="1")
         {
+            ViewBag.Language = language;
+            ViewBag.Seed = seed;
+            ViewBag.Likes = likes;
+            ViewBag.Reviews = reviews;
             if(_settings.Language != language || _settings.Seed != seed || _settings.Likes != likes || _settings.Reviews != reviews)
             {
                 _settings.Language = language;
@@ -34,10 +39,6 @@ namespace task5.Controllers
                 _settings.Reviews = reviews;
                 _bookId = -1;
             }
-            ViewBag.Language = language;
-            ViewBag.Seed = seed;
-            ViewBag.Likes = likes;
-            ViewBag.Reviews = reviews;
             var books = GenerateBooks(language, seed, double.Parse(likes), double.Parse(reviews), 20);
             return View(books);
         }
@@ -137,3 +138,4 @@ namespace task5.Controllers
         }
     }
 }
+
