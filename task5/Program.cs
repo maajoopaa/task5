@@ -26,14 +26,6 @@ app.MapControllerRoute(
     pattern: "{controller=Home}/{action=MainPage}/{id?}");
 
 app.Run();
-public interface IBookService
-{
-    public int Id { get; set; }
-}
-public class BookService : IBookService
-{
-    public int Id { get; set; } = -1;
-}
 public interface ISettingsService
 {
     public string Language { get; set; }
