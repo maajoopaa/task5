@@ -2,7 +2,6 @@ var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 builder.Services.AddControllersWithViews();
-builder.Services.AddSingleton<IBookService,BookService>();
 builder.Services.AddSingleton<ISettingsService,SettingsService>();
 var app = builder.Build();
 
