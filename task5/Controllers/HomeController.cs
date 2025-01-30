@@ -18,14 +18,13 @@ namespace task5.Controllers
     {
         private readonly ILogger<HomeController> _logger;
         private ISettingsService _settings;
-        private static int _bookId = -1;
 
         public HomeController(ILogger<HomeController> logger, ISettingsService settings)
         {
             _logger = logger;
             _settings = settings;
         }
-        public IActionResult MainPage(string language="ru", int seed=0, string likes="1",string reviews="1")
+        public IActionResult MainPage(string language="ru", int seed=0, string likes="1",string reviews="1",int lastId=0)
         {
             ViewBag.Language = language;
             ViewBag.Seed = seed;
@@ -39,14 +38,14 @@ namespace task5.Controllers
                 _settings.Reviews = reviews;
                 _bookId = -1;
             }
-            var books = GenerateBooks(language, seed, double.Parse(likes), double.Parse(reviews), 20);
+            var books = GenerateBooks(language, seed, double.Parse(likes), double.Parse(reviews), 20,lastId);
             return View(books);
         }
-        public IActionResult LoadMoreBooks(string language, int seed, string likes, string reviews)
+        public IActionResult LoadMoreBooks(string language, int seed, string likes, string reviews,int lastId)
         {
-            return Json(GenerateBooks(language, seed, double.Parse(likes), double.Parse(reviews), 10));
+            return Json(GenerateBooks(language, seed, double.Parse(likes), double.Parse(reviews), 10, lastId));
         }
-        private List<Book> GenerateBooks(string language, int seed, double likes, double reviews, int count)
+        private List<Book> GenerateBooks(string language, int seed, double likes, double reviews, int count,int lastId)
         {
             double variationForLikes = likes < 1.0 ? 0.0 : 1.0;
             double variationForReviews = reviews < 1.0 ? 0.0 : 1.0;
@@ -58,11 +57,7 @@ namespace task5.Controllers
                 .RuleFor(b => b.Publisher, f => f.Company.CompanyName() + $", {f.Random.Int(DateTime.Now.Year - 5, DateTime.Now.Year)}")
                 .RuleFor(b => b.Rating, f => (int)Math.Round(f.Random.Double(likes - variationForLikes, Math.Max(Math.Min(likes + variationForLikes, 10),1))))
                 .RuleFor(b => b.Reviews, f => GenerateReviews(f, language, reviews - variationForReviews, Math.Max(reviews + variationForReviews,1)))
-                .RuleFor(b => b.Id, f =>
-                {
-                    _bookId += 1;
-                    return _bookId + 1;
-                })
+                .RuleFor(b => b.Id, f => ++lastId)
                 .RuleFor(b => b.Image, (f, b) => GenerateImage(b.Title, b.Authors));
             return bookFaker.Generate(count);
         }
@@ -138,4 +133,3 @@ namespace task5.Controllers
         }
     }
 }
-
