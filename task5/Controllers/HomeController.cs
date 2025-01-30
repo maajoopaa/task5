@@ -50,7 +50,7 @@ namespace task5.Controllers
             double variationForLikes = likes < 1.0 ? 0.0 : 1.0;
             double variationForReviews = reviews < 1.0 ? 0.0 : 1.0;
             var bookFaker = new Faker<Book>(language)
-                .RuleFor(b => b.Id, f => ++lastId)
+                .RuleFor(b => b.Id, _ => ++lastId)
                 .RuleFor(b => b.ISBN, f => f.Commerce.Ean13())
                 .RuleFor(b => b.Title, f => f.Lorem.Sentence(1, 4))
                 .RuleFor(b => b.Authors, f => GenerateAuthors(language, 1, 3))
