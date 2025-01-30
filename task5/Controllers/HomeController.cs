@@ -26,7 +26,7 @@ namespace task5.Controllers
         }
         public IActionResult MainPage(string language="ru", int seed=0, string likes="1",string reviews="1",int lastId=1)
         {
-            Randomizer.Seed = new Random(seed);
+            Randomizer.Seed = new Random(seed+lastId);
             ViewBag.Language = language;
             ViewBag.Seed = seed;
             ViewBag.Likes = likes;
