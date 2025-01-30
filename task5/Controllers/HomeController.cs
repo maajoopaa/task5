@@ -24,7 +24,7 @@ namespace task5.Controllers
             _logger = logger;
             _settings = settings;
         }
-        public IActionResult MainPage(string language="ru", int seed=0, string likes="1",string reviews="1",int lastId=0)
+        public IActionResult MainPage(string language="ru", int seed=0, string likes="1",string reviews="1",int lastId=1)
         {
             Randomizer.Seed = new Random(seed);
             ViewBag.Language = language;
@@ -52,9 +52,7 @@ namespace task5.Controllers
             var bookFaker = new Faker<Book>(language)
                 .RuleFor(b => b.Id, f =>
                 {
-                    ++lastId;
-                    f.IndexFaker = lastId;
-                    return f.IndexFaker;
+                    return lastId+f.IndexFaker;
                 })
                 .RuleFor(b => b.ISBN, f => f.Commerce.Ean13())
                 .RuleFor(b => b.Title, f => f.Lorem.Sentence(1, 4))
