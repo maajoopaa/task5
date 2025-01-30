@@ -26,6 +26,7 @@ namespace task5.Controllers
         }
         public IActionResult MainPage(string language="ru", int seed=0, string likes="1",string reviews="1",int lastId=0)
         {
+            Randomizer.Seed = new Random(seed);
             ViewBag.Language = language;
             ViewBag.Seed = seed;
             ViewBag.Likes = likes;
@@ -48,25 +49,24 @@ namespace task5.Controllers
         {
             double variationForLikes = likes < 1.0 ? 0.0 : 1.0;
             double variationForReviews = reviews < 1.0 ? 0.0 : 1.0;
-            Randomizer.Seed = new Random(seed);
             var bookFaker = new Faker<Book>(language)
+                .RuleFor(b => b.Id, f => ++lastId)
                 .RuleFor(b => b.ISBN, f => f.Commerce.Ean13())
                 .RuleFor(b => b.Title, f => f.Lorem.Sentence(1, 4))
-                .RuleFor(b => b.Authors, f => GenerateAuthors(f, language, 1, 3))
+                .RuleFor(b => b.Authors, f => GenerateAuthors(language, 1, 3))
                 .RuleFor(b => b.Publisher, f => f.Company.CompanyName() + $", {f.Random.Int(DateTime.Now.Year - 5, DateTime.Now.Year)}")
                 .RuleFor(b => b.Rating, f => (int)Math.Round(f.Random.Double(likes - variationForLikes, Math.Max(Math.Min(likes + variationForLikes, 10),1))))
-                .RuleFor(b => b.Reviews, f => GenerateReviews(f, language, reviews - variationForReviews, Math.Max(reviews + variationForReviews,1)))
-                .RuleFor(b => b.Id, f => ++lastId)
+                .RuleFor(b => b.Reviews, f => GenerateReviews(language, reviews - variationForReviews, Math.Max(reviews + variationForReviews,1)))
                 .RuleFor(b => b.Image, (f, b) => GenerateImage(b.Title, b.Authors));
             return bookFaker.Generate(count);
         }
-        private List<Author> GenerateAuthors(Faker f, string language, int min, int max)
+        private List<Author> GenerateAuthors(string language, int min, int max)
         {
             var authorsFaker = new Faker<Author>(language)
                 .RuleFor(a => a.Name, f => f.Name.FullName());
             return authorsFaker.GenerateBetween(min, max);
         }
-        private List<Review> GenerateReviews(Faker f, string language, double min, double max)
+        private List<Review> GenerateReviews(string language, double min, double max)
         {
             var reviewsFaker = new Faker<Review>(language)
                 .RuleFor(r => r.Text, f => f.Lorem.Paragraph())
