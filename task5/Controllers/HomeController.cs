@@ -36,7 +36,6 @@ namespace task5.Controllers
                 _settings.Seed = seed;
                 _settings.Likes = likes;
                 _settings.Reviews = reviews;
-                _bookId = -1;
             }
             var books = GenerateBooks(language, seed, double.Parse(likes), double.Parse(reviews), 20,lastId);
             return View(books);
