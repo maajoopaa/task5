@@ -26,7 +26,6 @@ namespace task5.Controllers
         }
         public IActionResult MainPage(string language="ru", int seed=0, string likes="1",string reviews="1",int lastId=1)
         {
-            Randomizer.Seed = new Random(seed+lastId);
             ViewBag.Language = language;
             ViewBag.Seed = seed;
             ViewBag.Likes = likes;
@@ -47,6 +46,7 @@ namespace task5.Controllers
         }
         private List<Book> GenerateBooks(string language, int seed, double likes, double reviews, int count,int lastId)
         {
+            Randomizer.Seed = new Random(seed+lastId);
             double variationForLikes = likes < 1.0 ? 0.0 : 1.0;
             double variationForReviews = reviews < 1.0 ? 0.0 : 1.0;
             var bookFaker = new Faker<Book>(language)
