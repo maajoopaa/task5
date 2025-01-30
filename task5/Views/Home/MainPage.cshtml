@@ -1,10 +1,10 @@
-﻿@model List<Book>
+@model List<Book>
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Книжный магазин - Генерация данных</title>
+    <title>Генерация данных</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -189,8 +189,8 @@
             const seed = document.getElementById("seed").value;
             const likes = document.getElementById("averageLikes").value;
             const reviews = document.getElementById("averageReviews").value;
-
-            fetch(`/Home/LoadMoreBooks?language=${language}&seed=${seed}&likes=${likes}&reviews=${reviews}`)
+            const lastId = getLastBookIdFromTable();
+            fetch(`/Home/LoadMoreBooks?language=${language}&seed=${seed}&likes=${likes}&reviews=${reviews}&lastId=${lastId}`)
                 .then(response => response.json())
                 .then(data => {
                     const booksTable = document.querySelector("#booksTable tbody");
@@ -241,7 +241,25 @@
                     document.getElementById("loading").style.display = 'none';
                 });
         }
+        function getLastBookIdFromTable() {
+            const table = document.getElementById("booksTable");
 
+            const rows = table.getElementsByTagName("tr");
+
+            let lastBookId = 0;
+
+            for (let i = 1; i < rows.length; i++) {
+                const cells = rows[i].getElementsByTagName("td");
+
+                const bookId = parseInt(cells[0].textContent, 10);
+
+                if (bookId > lastBookId) {
+                    lastBookId = bookId;
+                }
+            }
+
+            return lastBookId;
+        }
 
         window.addEventListener("scroll", () => {
             if ((window.innerHeight + window.scrollY) >= document.body.offsetHeight - 100 && !isLoading) {
